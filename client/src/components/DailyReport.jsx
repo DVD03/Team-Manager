@@ -2,16 +2,12 @@ import React, { useState, useEffect } from 'react';
 import {
   FileText,
   Calendar,
-  Download,
   Users,
   CheckCircle2,
   PhoneCall,
-  Briefcase,
   Activity,
   ShieldCheck,
-  Clock,
   Printer,
-  ExternalLink,
 } from 'lucide-react';
 import axios from 'axios';
 
@@ -44,6 +40,14 @@ export default function DailyReport({ team = [], darkMode = true }) {
   const handlePrint = () => {
     window.print();
   };
+
+  const tasksList = reportData?.tasks || [];
+  const callsList = reportData?.calls || [];
+  const updatesList = reportData?.updates || [];
+  const summary = reportData?.summary || {};
+
+  const completedTasksCount = tasksList.filter((t) => t.status === 'Completed').length;
+  const dealsWonCount = callsList.filter((c) => c.outcome === 'Deal Won').length;
 
   return (
     <div className="space-y-6">
@@ -96,7 +100,7 @@ export default function DailyReport({ team = [], darkMode = true }) {
             <div>
               <div className="flex items-center space-x-2">
                 <span className="text-2xl font-black bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-                  ProManager A-Z
+                  Team Manager A-Z
                 </span>
                 <span className="text-xs bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded font-bold">
                   Daily Work Audit
@@ -116,22 +120,20 @@ export default function DailyReport({ team = [], darkMode = true }) {
           {/* Quick Summary Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className={`${innerBg} p-4 rounded-xl border space-y-1`}>
-              <span className={`text-xs ${textSub} font-medium`}>Total Tasks Completed</span>
-              <p className="text-2xl font-black text-emerald-500">{reportData.summary.completedTasksToday}</p>
+              <span className={`text-xs ${textSub} font-medium`}>Tasks Completed</span>
+              <p className="text-2xl font-black text-emerald-500">{completedTasksCount}</p>
             </div>
             <div className={`${innerBg} p-4 rounded-xl border space-y-1`}>
               <span className={`text-xs ${textSub} font-medium`}>Customer Calls Logged</span>
-              <p className="text-2xl font-black text-blue-500">{reportData.summary.callsToday}</p>
+              <p className="text-2xl font-black text-blue-500">{callsList.length}</p>
             </div>
             <div className={`${innerBg} p-4 rounded-xl border space-y-1`}>
               <span className={`text-xs ${textSub} font-medium`}>Project Updates Posted</span>
-              <p className="text-2xl font-black text-pink-500">{reportData.summary.updatesToday}</p>
+              <p className="text-2xl font-black text-pink-500">{updatesList.length}</p>
             </div>
             <div className={`${innerBg} p-4 rounded-xl border space-y-1`}>
               <span className={`text-xs ${textSub} font-medium`}>Deals Won Today</span>
-              <p className="text-2xl font-black text-amber-500">
-                {reportData.callsToday.filter((c) => c.outcome === 'Deal Won').length}
-              </p>
+              <p className="text-2xl font-black text-amber-500">{dealsWonCount}</p>
             </div>
           </div>
 
@@ -142,14 +144,14 @@ export default function DailyReport({ team = [], darkMode = true }) {
               <span>1. Employee-wise Output & Activities (A-Z)</span>
             </h3>
 
-            {team.map((member) => {
-              const empTasksCompleted = reportData.completedTasksToday.filter(
+            {(team || []).map((member) => {
+              const empTasks = tasksList.filter(
                 (t) => t.assignedTo?._id === member._id || t.assignedTo === member._id
               );
-              const empCalls = reportData.callsToday.filter(
+              const empCalls = callsList.filter(
                 (c) => c.loggedBy?._id === member._id || c.loggedByName === member.name
               );
-              const empUpdates = reportData.updatesToday.filter(
+              const empUpdates = updatesList.filter(
                 (u) => u.updatedBy?._id === member._id
               );
 
@@ -177,16 +179,16 @@ export default function DailyReport({ team = [], darkMode = true }) {
                     {/* Tasks Completed */}
                     <div className="p-3 bg-slate-500/5 rounded-xl border border-slate-700/30 space-y-1">
                       <span className="font-bold text-emerald-400 flex items-center gap-1">
-                        <CheckCircle2 className="w-3.5 h-3.5" /> Completed Tasks ({empTasksCompleted.length}):
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Assigned / Completed Tasks ({empTasks.length}):
                       </span>
-                      {empTasksCompleted.length > 0 ? (
+                      {empTasks.length > 0 ? (
                         <ul className="space-y-1 text-[11px] text-slate-300">
-                          {empTasksCompleted.map((t) => (
-                            <li key={t._id}>• {t.title} ({t.project?.title || 'Project'})</li>
+                          {empTasks.map((t) => (
+                            <li key={t._id}>• {t.title} ({t.status || 'In Progress'})</li>
                           ))}
                         </ul>
                       ) : (
-                        <p className="text-[10px] text-slate-500 italic">No tasks completed today.</p>
+                        <p className="text-[10px] text-slate-500 italic">No tasks assigned today.</p>
                       )}
                     </div>
 
@@ -227,31 +229,6 @@ export default function DailyReport({ team = [], darkMode = true }) {
                 </div>
               );
             })}
-          </div>
-
-          {/* Audit Logs Trail Today */}
-          <div className="space-y-3 pt-4">
-            <h3 className={`text-lg font-bold ${textTitle} flex items-center gap-2 border-b border-slate-700/60 pb-2`}>
-              <ShieldCheck className="w-5 h-5 text-indigo-500" />
-              <span>2. System Audit Log Entries Today ({reportData.auditLogsToday?.length || 0})</span>
-            </h3>
-            {reportData.auditLogsToday && reportData.auditLogsToday.length > 0 ? (
-              <div className="space-y-1.5 text-xs">
-                {reportData.auditLogsToday.map((log) => (
-                  <div key={log._id} className="flex justify-between items-center p-2 bg-slate-500/5 rounded-lg border border-slate-700/30">
-                    <div>
-                      <span className="font-bold text-indigo-400">{log.userName}: </span>
-                      <span className={textSub}>{log.details}</span>
-                    </div>
-                    <span className="text-[10px] text-slate-500 font-mono">
-                      {new Date(log.timestamp).toLocaleTimeString()}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className={`text-xs ${textSub} italic`}>No audit logs recorded for this date.</p>
-            )}
           </div>
         </div>
       )}
