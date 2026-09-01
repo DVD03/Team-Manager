@@ -3,6 +3,7 @@ const router = express.Router();
 const Task = require('../models/Task');
 const Project = require('../models/Project');
 const logAudit = require('../utils/auditLogger');
+const getMemberScope = require('../utils/memberScope');
 const { protect } = require('../middleware/auth');
 
 // Helper to recalculate and sync Project progress % based on tasks
@@ -26,14 +27,27 @@ const normalizeStatus = (status) => {
   return status || 'To Do';
 };
 
-// Get all tasks
+// Get tasks (Admin sees all; Member sees assigned / team leader tasks)
 router.get('/', protect, async (req, res) => {
   try {
     const { project, assignedTo, status } = req.query;
+    const scope = await getMemberScope(req.user);
+
     const filter = {};
     if (project) filter.project = project;
     if (assignedTo) filter.assignedTo = assignedTo;
     if (status) filter.status = status;
+
+    if (!scope.isAdmin) {
+      // Get member's assigned projects as well
+      const memberProjects = await Project.find({ assignedTeam: { $in: scope.allowedMemberIds } }).select('_id');
+      const memberProjectIds = memberProjects.map((p) => p._id);
+
+      filter.$or = [
+        { assignedTo: { $in: scope.allowedMemberIds } },
+        { project: { $in: memberProjectIds } },
+      ];
+    }
 
     const rawTasks = await Task.find(filter)
       .populate('project', 'title clientName progress')
@@ -77,7 +91,7 @@ router.post('/', protect, async (req, res) => {
       userEmail: req.user.email,
       action: 'CREATE',
       module: 'TASK',
-      details: `Created task "${task.title}" under project "${populated.project ? populated.project.title : 'Project'}" (Assigned to: ${populated.assignedTo ? populated.assignedTo.name : 'Unassigned'})`,
+      details: `Created task "${task.title}" under project "${populated && populated.project ? populated.project.title : 'Project'}" (Assigned to: ${populated && populated.assignedTo ? populated.assignedTo.name : 'Unassigned'})`,
     });
 
     res.status(201).json(populated);
@@ -99,6 +113,10 @@ router.put('/:id', protect, async (req, res) => {
     const updated = await Task.findByIdAndUpdate(req.params.id, updateData, { new: true })
       .populate('project', 'title clientName progress')
       .populate('assignedTo', 'name email role avatar');
+
+    if (!updated) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
 
     if (updated.project) {
       await syncProjectProgress(updated.project._id || updated.project);
@@ -123,9 +141,12 @@ router.put('/:id', protect, async (req, res) => {
 router.delete('/:id', protect, async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
     await Task.findByIdAndDelete(req.params.id);
 
-    if (task && task.project) {
+    if (task.project) {
       await syncProjectProgress(task.project);
     }
 
@@ -135,7 +156,7 @@ router.delete('/:id', protect, async (req, res) => {
       userEmail: req.user.email,
       action: 'DELETE',
       module: 'TASK',
-      details: `Deleted task "${task ? task.title : req.params.id}"`,
+      details: `Deleted task "${task.title}"`,
     });
 
     res.json({ message: 'Task deleted successfully' });

@@ -3,15 +3,27 @@ const router = express.Router();
 const CallLog = require('../models/CallLog');
 const upload = require('../middleware/upload');
 const logAudit = require('../utils/auditLogger');
+const getMemberScope = require('../utils/memberScope');
 const { protect } = require('../middleware/auth');
 
-// Get all customer calls
+// Get customer calls (Admin sees all; Member sees own / team leader calls)
 router.get('/', protect, async (req, res) => {
   try {
-    const calls = await CallLog.find()
+    const scope = await getMemberScope(req.user);
+    const filter = scope.isAdmin
+      ? {}
+      : {
+          $or: [
+            { loggedBy: { $in: scope.allowedMemberIds } },
+            { loggedByEmail: req.user.email },
+          ],
+        };
+
+    const calls = await CallLog.find(filter)
       .populate('project', 'title clientName progress')
       .populate('loggedBy', 'name role email')
       .sort({ callDate: -1 });
+
     res.json(calls);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -126,6 +138,9 @@ router.post('/bulk', protect, upload.array('proofFiles', 5), async (req, res) =>
 router.delete('/:id', protect, async (req, res) => {
   try {
     const call = await CallLog.findById(req.params.id);
+    if (!call) {
+      return res.status(404).json({ error: 'Call log not found' });
+    }
     await CallLog.findByIdAndDelete(req.params.id);
 
     await logAudit({
@@ -134,7 +149,7 @@ router.delete('/:id', protect, async (req, res) => {
       userEmail: req.user.email,
       action: 'DELETE',
       module: 'CALL',
-      details: `Deleted call record for client: ${call ? call.clientName : req.params.id}`,
+      details: `Deleted call record for client: ${call.clientName}`,
     });
 
     res.json({ message: 'Call log deleted' });

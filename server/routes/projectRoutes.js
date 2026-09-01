@@ -5,6 +5,7 @@ const Task = require('../models/Task');
 const CallLog = require('../models/CallLog');
 const ProjectUpdate = require('../models/ProjectUpdate');
 const logAudit = require('../utils/auditLogger');
+const getMemberScope = require('../utils/memberScope');
 const { protect, adminOnly } = require('../middleware/auth');
 
 const cleanPayload = (data) => {
@@ -15,11 +16,16 @@ const cleanPayload = (data) => {
   return payload;
 };
 
-// Get all projects with linked tasks, call logs, updates, and team
+// Get projects (Admin sees all; Member sees assigned / team leader projects)
 router.get('/', protect, async (req, res) => {
   try {
-    const projects = await Project.find()
-      .populate('assignedTeam', 'name email role avatar status')
+    const scope = await getMemberScope(req.user);
+    const filter = scope.isAdmin
+      ? {}
+      : { assignedTeam: { $in: scope.allowedMemberIds } };
+
+    const projects = await Project.find(filter)
+      .populate('assignedTeam', 'name email role avatar status isTeamLeader')
       .sort({ createdAt: -1 });
 
     const projectsWithLinkedData = await Promise.all(

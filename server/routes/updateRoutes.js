@@ -3,15 +3,28 @@ const router = express.Router();
 const ProjectUpdate = require('../models/ProjectUpdate');
 const Project = require('../models/Project');
 const logAudit = require('../utils/auditLogger');
+const getMemberScope = require('../utils/memberScope');
 const { protect } = require('../middleware/auth');
 
-// Get all updates or by project
+// Get updates (Admin sees all; Member sees own / assigned project updates)
 router.get('/', protect, async (req, res) => {
   try {
     const { project, category } = req.query;
+    const scope = await getMemberScope(req.user);
+
     const filter = {};
     if (project) filter.project = project;
     if (category) filter.category = category;
+
+    if (!scope.isAdmin) {
+      const memberProjects = await Project.find({ assignedTeam: { $in: scope.allowedMemberIds } }).select('_id');
+      const memberProjectIds = memberProjects.map((p) => p._id);
+
+      filter.$or = [
+        { updatedBy: { $in: scope.allowedMemberIds } },
+        { project: { $in: memberProjectIds } },
+      ];
+    }
 
     const updates = await ProjectUpdate.find(filter)
       .populate('project', 'title clientName progress status')
@@ -35,7 +48,7 @@ router.post('/', protect, async (req, res) => {
       category: category || 'Milestone Progress',
       requestStatus: requestStatus || 'In Development',
       progressPercentage,
-      updatedBy: updatedBy || req.user.id,
+      updatedBy: updatedBy || req.user.teamMemberId || req.user.id,
     });
     await update.save();
 
@@ -53,7 +66,7 @@ router.post('/', protect, async (req, res) => {
       userEmail: req.user.email,
       action: 'CREATE',
       module: 'UPDATE',
-      details: `Logged ${category || 'update'} "${updateTitle}" for project "${populated.project ? populated.project.title : 'Project'}"`,
+      details: `Logged ${category || 'update'} "${updateTitle}" for project "${populated && populated.project ? populated.project.title : 'Project'}"`,
     });
 
     res.status(201).json(populated);
@@ -66,6 +79,9 @@ router.post('/', protect, async (req, res) => {
 router.delete('/:id', protect, async (req, res) => {
   try {
     const update = await ProjectUpdate.findById(req.params.id);
+    if (!update) {
+      return res.status(404).json({ error: 'Update not found' });
+    }
     await ProjectUpdate.findByIdAndDelete(req.params.id);
 
     await logAudit({
@@ -74,7 +90,7 @@ router.delete('/:id', protect, async (req, res) => {
       userEmail: req.user.email,
       action: 'DELETE',
       module: 'UPDATE',
-      details: `Deleted update "${update ? update.updateTitle : req.params.id}"`,
+      details: `Deleted update "${update.updateTitle}"`,
     });
 
     res.json({ message: 'Update removed' });
