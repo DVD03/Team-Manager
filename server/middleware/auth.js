@@ -13,17 +13,21 @@ const protect = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'promanager_secret');
     req.user = decoded;
-    next();
+    if (typeof next === 'function') {
+      return next();
+    }
   } catch (err) {
-    res.status(401).json({ error: 'Token verification failed' });
+    return res.status(401).json({ error: 'Token verification failed. Please sign in again.' });
   }
 };
 
 const adminOnly = (req, res, next) => {
   if (req.user && req.user.role === 'Admin') {
-    next();
+    if (typeof next === 'function') {
+      return next();
+    }
   } else {
-    res.status(403).json({ error: 'Access denied: Admin privileges required' });
+    return res.status(403).json({ error: 'Access denied: Admin privileges required' });
   }
 };
 

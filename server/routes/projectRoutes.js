@@ -79,13 +79,17 @@ router.put('/:id', protect, async (req, res) => {
     const payload = cleanPayload(req.body);
     const updated = await Project.findByIdAndUpdate(req.params.id, payload, { new: true, runValidators: true }).populate('assignedTeam');
 
+    if (!updated) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
     await logAudit({
       userName: req.user.name,
       userRole: req.user.role,
       userEmail: req.user.email,
       action: 'UPDATE',
       module: 'PROJECT',
-      details: `Updated project "${updated ? updated.title : req.params.id}" progress to ${updated ? updated.progress : 0}%`,
+      details: `Updated project "${updated.title}" progress to ${updated.progress}% (Status: ${updated.status})`,
     });
 
     res.json(updated);
@@ -98,6 +102,9 @@ router.put('/:id', protect, async (req, res) => {
 router.delete('/:id', protect, adminOnly, async (req, res) => {
   try {
     const project = await Project.findById(req.params.id);
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
     await Project.findByIdAndDelete(req.params.id);
     await Task.deleteMany({ project: req.params.id });
     await CallLog.updateMany({ project: req.params.id }, { $unset: { project: 1 } });
@@ -109,7 +116,7 @@ router.delete('/:id', protect, adminOnly, async (req, res) => {
       userEmail: req.user.email,
       action: 'DELETE',
       module: 'PROJECT',
-      details: `Deleted project "${project ? project.title : req.params.id}" and associated data`,
+      details: `Deleted project "${project.title}" and associated data`,
     });
 
     res.json({ message: 'Project and associated data deleted' });
