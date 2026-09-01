@@ -28,10 +28,20 @@ const ProjectSchema = new mongoose.Schema(
     deadline: { type: Date },
     progress: { type: Number, min: 0, max: 100, default: 0 },
     budget: { type: Number, default: 0 },
-    assignedTeam: [{ type: mongoose.Schema.Types.ObjectId, ref: 'TeamMember' }],
+    assignedTeam: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'TeamMember',
+        set: (v) => (v === '' || v === 'null' ? null : v),
+      },
+    ],
     // Acquisition & Call fields
     acquiredViaCall: { type: Boolean, default: false },
-    linkedCall: { type: mongoose.Schema.Types.ObjectId, ref: 'CallLog' },
+    linkedCall: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'CallLog',
+      set: (v) => (v === '' || v === 'null' ? null : v),
+    },
     // Post Handover fields
     handoverDate: { type: Date },
     warrantyEndDate: { type: Date },
@@ -39,13 +49,5 @@ const ProjectSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
-// Clean empty string ObjectIds before Mongoose validation
-ProjectSchema.pre('validate', function (next) {
-  if (this.linkedCall === '' || this.linkedCall === 'null') {
-    this.linkedCall = undefined;
-  }
-  next();
-});
 
 module.exports = mongoose.model('Project', ProjectSchema);

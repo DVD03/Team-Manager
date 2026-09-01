@@ -3,19 +3,18 @@ const mongoose = require('mongoose');
 const TeamMemberSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
-    email: { type: String, required: true, unique: true, trim: true, lowercase: true },
-    phone: { type: String, trim: true, default: '' },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    phone: { type: String, default: '', trim: true },
     role: { type: String, required: true, default: 'Developer' },
-    status: {
-      type: String,
-      enum: ['Active', 'On Leave', 'Inactive'],
-      default: 'Active',
-    },
-    skills: [{ type: String }],
+    status: { type: String, enum: ['Active', 'On Leave', 'Inactive'], default: 'Active' },
     avatar: { type: String, default: '' },
-    // Team Leader & Hierarchy fields
+    skills: [{ type: String }],
     isTeamLeader: { type: Boolean, default: false },
-    teamLeader: { type: mongoose.Schema.Types.ObjectId, ref: 'TeamMember' },
+    teamLeader: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'TeamMember',
+      set: (v) => (v === '' || v === 'null' ? null : v),
+    },
   },
   { timestamps: true }
 );
