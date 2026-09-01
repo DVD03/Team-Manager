@@ -85,6 +85,7 @@ export default function ProjectTracker({ projects = [], team = [], calls = [], o
       const payload = {
         ...formData,
         category: finalCategory,
+        linkedCall: formData.acquiredViaCall && formData.linkedCall && formData.linkedCall.trim() ? formData.linkedCall.trim() : null,
       };
 
       let createdId = null;

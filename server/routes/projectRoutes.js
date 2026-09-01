@@ -7,6 +7,14 @@ const ProjectUpdate = require('../models/ProjectUpdate');
 const logAudit = require('../utils/auditLogger');
 const { protect, adminOnly } = require('../middleware/auth');
 
+const cleanPayload = (data) => {
+  const payload = { ...data };
+  if (payload.linkedCall === '' || payload.linkedCall === 'null') {
+    payload.linkedCall = null;
+  }
+  return payload;
+};
+
 // Get all projects with linked tasks, call logs, updates, and team
 router.get('/', protect, async (req, res) => {
   try {
@@ -46,7 +54,8 @@ router.get('/', protect, async (req, res) => {
 // Create project (Admin only)
 router.post('/', protect, adminOnly, async (req, res) => {
   try {
-    const project = new Project(req.body);
+    const payload = cleanPayload(req.body);
+    const project = new Project(payload);
     await project.save();
 
     await logAudit({
@@ -67,7 +76,8 @@ router.post('/', protect, adminOnly, async (req, res) => {
 // Update project (Progress slider / title / budget / status)
 router.put('/:id', protect, async (req, res) => {
   try {
-    const updated = await Project.findByIdAndUpdate(req.params.id, req.body, { new: true }).populate('assignedTeam');
+    const payload = cleanPayload(req.body);
+    const updated = await Project.findByIdAndUpdate(req.params.id, payload, { new: true, runValidators: true }).populate('assignedTeam');
 
     await logAudit({
       userName: req.user.name,
@@ -75,7 +85,7 @@ router.put('/:id', protect, async (req, res) => {
       userEmail: req.user.email,
       action: 'UPDATE',
       module: 'PROJECT',
-      details: `Updated project "${updated.title}" progress to ${updated.progress}% (Status: ${updated.status})`,
+      details: `Updated project "${updated ? updated.title : req.params.id}" progress to ${updated ? updated.progress : 0}%`,
     });
 
     res.json(updated);

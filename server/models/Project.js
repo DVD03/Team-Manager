@@ -40,4 +40,12 @@ const ProjectSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Clean empty string ObjectIds before Mongoose validation
+ProjectSchema.pre('validate', function (next) {
+  if (this.linkedCall === '' || this.linkedCall === 'null') {
+    this.linkedCall = undefined;
+  }
+  next();
+});
+
 module.exports = mongoose.model('Project', ProjectSchema);
