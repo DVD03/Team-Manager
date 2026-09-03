@@ -7,27 +7,47 @@ const TeamMember = require('../models/TeamMember');
 const logAudit = require('../utils/auditLogger');
 const { protect, adminOnly } = require('../middleware/auth');
 
-// Seed / Reset default Admin user to guarantee admin@promanager.com / admin123
+// Seed / Reset default Admin users (admin@promanager.com & rashin@raxwo.com)
 const seedDefaultAdmin = async () => {
   try {
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash('admin123', salt);
+    const defaultPassword = await bcrypt.hash('admin123', salt);
+    const rashinPassword = await bcrypt.hash('Rashin@boss', salt);
 
+    // 1. Default admin
     let admin = await User.findOne({ email: 'admin@promanager.com' });
     if (!admin) {
       admin = new User({
         name: 'Project Manager (Admin)',
         email: 'admin@promanager.com',
-        password: hashedPassword,
+        password: defaultPassword,
         role: 'Admin',
       });
       await admin.save();
       console.log('[Auth] Admin account created: admin@promanager.com / admin123');
     } else {
-      admin.password = hashedPassword;
+      admin.password = defaultPassword;
       admin.role = 'Admin';
       await admin.save();
       console.log('[Auth] Admin password verified/reset: admin@promanager.com / admin123');
+    }
+
+    // 2. Rashin Admin
+    let rashin = await User.findOne({ email: 'rashin@raxwo.com' });
+    if (!rashin) {
+      rashin = new User({
+        name: 'Rashin (Admin)',
+        email: 'rashin@raxwo.com',
+        password: rashinPassword,
+        role: 'Admin',
+      });
+      await rashin.save();
+      console.log('[Auth] Admin account created: rashin@raxwo.com / Rashin@boss');
+    } else {
+      rashin.password = rashinPassword;
+      rashin.role = 'Admin';
+      await rashin.save();
+      console.log('[Auth] Admin password verified/reset: rashin@raxwo.com / Rashin@boss');
     }
   } catch (err) {
     console.error('[Auth Seed Error]:', err.message);

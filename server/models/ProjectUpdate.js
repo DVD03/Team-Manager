@@ -2,7 +2,12 @@ const mongoose = require('mongoose');
 
 const ProjectUpdateSchema = new mongoose.Schema(
   {
-    project: { type: mongoose.Schema.Types.ObjectId, ref: 'Project', required: true },
+    project: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Project',
+      required: true,
+      set: (v) => (v === '' || v === 'null' || !v ? null : v),
+    },
     updateTitle: { type: String, required: true, trim: true },
     description: { type: String, required: true },
     category: {
@@ -21,7 +26,11 @@ const ProjectUpdateSchema = new mongoose.Schema(
       default: 'In Development',
     },
     progressPercentage: { type: Number },
-    updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'TeamMember' },
+    updatedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'TeamMember',
+      set: (v) => (v === '' || v === 'null' || !v ? null : v),
+    },
     attachments: [{ type: String }],
   },
   { timestamps: true }

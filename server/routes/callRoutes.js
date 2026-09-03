@@ -6,6 +6,8 @@ const logAudit = require('../utils/auditLogger');
 const getMemberScope = require('../utils/memberScope');
 const { protect } = require('../middleware/auth');
 
+const cleanObjectId = (val) => (val && val !== '' && val !== 'null' ? val : null);
+
 // Get customer calls (Admin sees all; Member sees own / team leader calls)
 router.get('/', protect, async (req, res) => {
   try {
@@ -37,14 +39,14 @@ router.post('/', protect, upload.array('proofFiles', 5), async (req, res) => {
 
     const callLogData = {
       clientName: req.body.clientName,
-      clientPhone: req.body.clientPhone,
-      clientEmail: req.body.clientEmail,
-      project: req.body.project || null,
+      clientPhone: req.body.clientPhone || '',
+      clientEmail: req.body.clientEmail || '',
+      project: cleanObjectId(req.body.project),
       callDate: req.body.callDate || new Date(),
-      durationMinutes: req.body.durationMinutes || 0,
-      notes: req.body.notes,
+      durationMinutes: req.body.durationMinutes ? Number(req.body.durationMinutes) : 15,
+      notes: req.body.notes || 'Customer call logged',
       outcome: req.body.outcome || 'Lead / New Inquiry',
-      loggedBy: req.body.loggedBy || req.user.teamMemberId || null,
+      loggedBy: cleanObjectId(req.body.loggedBy) || cleanObjectId(req.user.teamMemberId),
       loggedByName: req.user.name,
       loggedByEmail: req.user.email,
       proofFiles: filePaths,
@@ -105,12 +107,12 @@ router.post('/bulk', protect, upload.array('proofFiles', 5), async (req, res) =>
           clientName: client.clientName,
           clientPhone: client.clientPhone || '',
           clientEmail: client.clientEmail || '',
-          project: req.body.project || null,
+          project: cleanObjectId(req.body.project),
           callDate: req.body.callDate || new Date(),
-          durationMinutes: req.body.durationMinutes || 10,
+          durationMinutes: req.body.durationMinutes ? Number(req.body.durationMinutes) : 10,
           notes: req.body.notes || 'Bulk outreach call',
           outcome: req.body.outcome || 'Lead / New Inquiry',
-          loggedBy: req.body.loggedBy || req.user.teamMemberId || null,
+          loggedBy: cleanObjectId(req.body.loggedBy) || cleanObjectId(req.user.teamMemberId),
           loggedByName: req.user.name,
           loggedByEmail: req.user.email,
           proofFiles: filePaths,

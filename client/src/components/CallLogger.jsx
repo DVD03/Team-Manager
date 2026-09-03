@@ -17,6 +17,15 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 
+const getUploadUrl = (fileUrl) => {
+  if (!fileUrl) return '';
+  if (fileUrl.startsWith('http://') || fileUrl.startsWith('https://')) return fileUrl;
+  const baseUrl = axios.defaults.baseURL || (import.meta.env.VITE_API_BASE_URL || '');
+  const cleanBase = baseUrl.replace(/\/+$/, '');
+  const cleanPath = fileUrl.startsWith('/') ? fileUrl : `/${fileUrl}`;
+  return `${cleanBase}${cleanPath}`;
+};
+
 export default function CallLogger({ calls = [], projects = [], team = [], onRefresh, darkMode = true }) {
   const [showModal, setShowModal] = useState(false);
   const [logMode, setLogMode] = useState('single');
@@ -439,12 +448,21 @@ export default function CallLogger({ calls = [], projects = [], team = [], onRef
 
             <div className={`flex justify-center items-center ${innerBg} p-4 rounded-xl max-h-[60vh] overflow-auto`}>
               {/\.(jpg|jpeg|png|webp|gif)$/i.test(previewProof) ? (
-                <img src={previewProof} alt="Proof Document" className="max-h-[50vh] object-contain rounded-lg shadow" />
+                <img
+                  src={getUploadUrl(previewProof)}
+                  alt="Proof Document"
+                  className="max-h-[50vh] object-contain rounded-lg shadow"
+                />
               ) : (
                 <div className="text-center py-10 space-y-3">
                   <FileText className="w-12 h-12 text-indigo-500 mx-auto" />
                   <p className={`${textTitle} text-sm`}>Document File</p>
-                  <a href={previewProof} target="_blank" rel="noreferrer" className="inline-block px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-semibold">
+                  <a
+                    href={getUploadUrl(previewProof)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-block px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-semibold"
+                  >
                     Open / Download File
                   </a>
                 </div>
@@ -452,7 +470,12 @@ export default function CallLogger({ calls = [], projects = [], team = [], onRef
             </div>
 
             <div className="flex justify-end">
-              <a href={previewProof} target="_blank" rel="noreferrer" className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5">
+              <a
+                href={getUploadUrl(previewProof)}
+                target="_blank"
+                rel="noreferrer"
+                className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5"
+              >
                 <ExternalLink className="w-3.5 h-3.5" /> Open Full Screen
               </a>
             </div>
