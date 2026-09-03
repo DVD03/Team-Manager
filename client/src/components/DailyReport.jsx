@@ -9,7 +9,6 @@ import {
   ShieldCheck,
   Printer,
   Award,
-  Clock,
   CheckSquare,
 } from 'lucide-react';
 import axios from 'axios';
@@ -20,7 +19,6 @@ export default function DailyReport({ team = [], darkMode = true, systemName = '
   const [loading, setLoading] = useState(true);
 
   const cardBg = darkMode ? 'bg-slate-800/90 border-slate-700' : 'bg-white border-slate-200 shadow-sm';
-  const innerBg = darkMode ? 'bg-slate-900 border-slate-700' : 'bg-slate-50 border-slate-200';
   const textTitle = darkMode ? 'text-white' : 'text-slate-900';
   const textSub = darkMode ? 'text-slate-400' : 'text-slate-500';
 
@@ -97,27 +95,25 @@ export default function DailyReport({ team = [], darkMode = true, systemName = '
         </div>
       ) : (
         <div className={`${cardBg} rounded-2xl border p-8 space-y-8 print:border-none print:shadow-none print:p-0 print:bg-white print:text-slate-900`}>
-          {/* Executive Letterhead Header */}
-          <div className="border-b-2 border-indigo-500 pb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:pb-4">
+          {/* Executive Letterhead Header - Clean Plain Shield Icon (No Purple Box) */}
+          <div className="border-b-2 border-indigo-600 pb-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:pb-4">
             <div className="flex items-center gap-3">
               {logoUrl ? (
-                <img src={logoUrl} alt="Logo" className="w-12 h-12 object-contain" />
+                <img src={logoUrl} alt="Logo" className="w-10 h-10 object-contain" />
               ) : (
-                <div className="w-12 h-12 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-black text-xl print:border print:border-indigo-700">
-                  {systemName.charAt(0)}
-                </div>
+                <ShieldCheck className="w-9 h-9 text-indigo-600 shrink-0" />
               )}
               <div>
-                <span className="text-2xl font-black text-indigo-600 tracking-tight">
+                <span className="text-2xl font-black text-indigo-600 tracking-tight block leading-none">
                   {systemName}
                 </span>
-                <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">
+                <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mt-1">
                   Executive Performance & Work Audit Report
                 </p>
               </div>
             </div>
 
-            <div className="text-right text-xs text-slate-500 space-y-1 print:text-slate-700">
+            <div className="text-right text-xs text-slate-600 space-y-0.5 print:text-slate-700">
               <p>
                 <strong>Report Date:</strong>{' '}
                 {new Date(reportData.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
@@ -125,45 +121,45 @@ export default function DailyReport({ team = [], darkMode = true, systemName = '
               <p>
                 <strong>Generated At:</strong> {new Date().toLocaleTimeString()}
               </p>
-              <span className="inline-block px-2.5 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded font-bold text-[10px]">
-                Verified Official Summary ✓
+              <span className="inline-block px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-300 rounded font-bold text-[10px] mt-1">
+                Verified Official Audit Summary ✓
               </span>
             </div>
           </div>
 
           {/* Quick Executive Summary Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 print:gap-3">
-            <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50/60 print:bg-emerald-50 space-y-1">
-              <span className="text-xs text-emerald-700 font-bold flex items-center gap-1">
-                <CheckSquare className="w-3.5 h-3.5" /> Tasks Completed
+            <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50/50 print:bg-emerald-50 space-y-1">
+              <span className="text-xs text-emerald-800 font-bold flex items-center gap-1">
+                <CheckSquare className="w-3.5 h-3.5 text-emerald-600" /> Tasks Completed
               </span>
               <p className="text-2xl font-black text-emerald-700">{completedTasksCount}</p>
             </div>
 
-            <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/60 print:bg-blue-50 space-y-1">
-              <span className="text-xs text-blue-700 font-bold flex items-center gap-1">
-                <PhoneCall className="w-3.5 h-3.5" /> Calls Logged
+            <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/50 print:bg-blue-50 space-y-1">
+              <span className="text-xs text-blue-800 font-bold flex items-center gap-1">
+                <PhoneCall className="w-3.5 h-3.5 text-blue-600" /> Calls Logged
               </span>
               <p className="text-2xl font-black text-blue-700">{callsList.length}</p>
             </div>
 
-            <div className="p-4 rounded-xl border border-purple-200 bg-purple-50/60 print:bg-purple-50 space-y-1">
-              <span className="text-xs text-purple-700 font-bold flex items-center gap-1">
-                <Activity className="w-3.5 h-3.5" /> Milestone Updates
+            <div className="p-4 rounded-xl border border-purple-200 bg-purple-50/50 print:bg-purple-50 space-y-1">
+              <span className="text-xs text-purple-800 font-bold flex items-center gap-1">
+                <Activity className="w-3.5 h-3.5 text-purple-600" /> Milestone Updates
               </span>
               <p className="text-2xl font-black text-purple-700">{updatesList.length}</p>
             </div>
 
-            <div className="p-4 rounded-xl border border-amber-200 bg-amber-50/60 print:bg-amber-50 space-y-1">
-              <span className="text-xs text-amber-700 font-bold flex items-center gap-1">
-                <Award className="w-3.5 h-3.5" /> Deals Won Today
+            <div className="p-4 rounded-xl border border-amber-200 bg-amber-50/50 print:bg-amber-50 space-y-1">
+              <span className="text-xs text-amber-800 font-bold flex items-center gap-1">
+                <Award className="w-3.5 h-3.5 text-amber-600" /> Deals Won Today
               </span>
               <p className="text-2xl font-black text-amber-700">{dealsWonCount}</p>
             </div>
           </div>
 
           {/* Employee-by-Employee Breakdown Section */}
-          <div className="space-y-4">
+          <div className="space-y-6">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white print:text-slate-900 flex items-center gap-2 border-b border-slate-200 dark:border-slate-700 pb-2">
               <Users className="w-5 h-5 text-indigo-600" />
               <span>Employee Output & Activity Breakdown (A-Z)</span>
@@ -181,75 +177,116 @@ export default function DailyReport({ team = [], darkMode = true, systemName = '
               );
 
               return (
-                <div key={member._id} className="p-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-900/60 print:bg-white print:border-slate-300 space-y-3 print-avoid-break">
-                  <div className="flex justify-between items-start">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-sm shadow shrink-0">
-                        {member.name.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-slate-900 dark:text-white print:text-slate-900 text-sm flex items-center gap-2">
-                          <span>{member.name}</span>
-                          <span className="text-xs text-indigo-600 font-semibold">({member.role})</span>
-                          {member.isTeamLeader && (
-                            <span className="text-[9px] bg-amber-100 text-amber-800 border border-amber-300 px-1.5 py-0.5 rounded font-black">👑 Team Leader</span>
-                          )}
+                <div
+                  key={member._id}
+                  className="p-5 rounded-2xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-900/60 print:bg-white print:border-slate-300 space-y-4 print-avoid-break shadow-sm"
+                >
+                  {/* Clean Employee Header without purple background box */}
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="font-bold text-slate-900 dark:text-white print:text-slate-900 text-base leading-snug">
+                          {member.name}
                         </h4>
-                        <p className="text-xs text-slate-500">{member.email}</p>
+                        <span className="text-xs text-indigo-600 dark:text-indigo-400 font-bold bg-indigo-50 dark:bg-indigo-950/40 px-2 py-0.5 rounded border border-indigo-200 dark:border-indigo-800">
+                          {member.role}
+                        </span>
+                        {member.isTeamLeader && (
+                          <span className="text-[10px] text-amber-800 bg-amber-50 border border-amber-300 px-2 py-0.5 rounded-full font-black">
+                            👑 Team Leader
+                          </span>
+                        )}
                       </div>
+                      <p className="text-xs text-slate-500 font-mono mt-0.5">{member.email}</p>
+                    </div>
+
+                    <div className="flex items-center gap-3 text-xs text-slate-500 font-semibold">
+                      <span className="text-emerald-600 font-bold">{empTasks.length} Tasks</span>
+                      <span>•</span>
+                      <span className="text-blue-600 font-bold">{empCalls.length} Calls</span>
+                      <span>•</span>
+                      <span className="text-purple-600 font-bold">{empUpdates.length} Updates</span>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs pt-2">
-                    {/* Tasks Completed */}
-                    <div className="p-3 bg-white dark:bg-slate-800/80 print:bg-slate-50 rounded-xl border border-slate-200 dark:border-slate-700 space-y-1">
-                      <span className="font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
-                        <CheckCircle2 className="w-3.5 h-3.5" /> Tasks ({empTasks.length}):
-                      </span>
-                      {empTasks.length > 0 ? (
-                        <ul className="space-y-1 text-[11px] text-slate-700 dark:text-slate-300">
-                          {empTasks.map((t) => (
-                            <li key={t._id}>• {t.title} ({t.status || 'In Progress'})</li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="text-[10px] text-slate-400 italic">No tasks assigned today.</p>
-                      )}
-                    </div>
+                  {/* Clean Corporate Table Layout for Employee Data */}
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-700">
+                          <th className="py-2.5 px-3 w-1/3 border-r border-slate-200 dark:border-slate-700">
+                            <span className="flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
+                              <CheckCircle2 className="w-3.5 h-3.5" /> Assigned / Completed Tasks ({empTasks.length})
+                            </span>
+                          </th>
+                          <th className="py-2.5 px-3 w-1/3 border-r border-slate-200 dark:border-slate-700">
+                            <span className="flex items-center gap-1 text-blue-700 dark:text-blue-400">
+                              <PhoneCall className="w-3.5 h-3.5" /> Customer Calls Logged ({empCalls.length})
+                            </span>
+                          </th>
+                          <th className="py-2.5 px-3 w-1/3">
+                            <span className="flex items-center gap-1 text-purple-700 dark:text-purple-400">
+                              <Activity className="w-3.5 h-3.5" /> Milestone Updates ({empUpdates.length})
+                            </span>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="align-top border-b border-slate-100 dark:border-slate-800">
+                          {/* Column 1: Tasks */}
+                          <td className="p-3 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40">
+                            {empTasks.length > 0 ? (
+                              <ul className="space-y-1.5 text-[11px] text-slate-700 dark:text-slate-300">
+                                {empTasks.map((t) => (
+                                  <li key={t._id} className="leading-snug">
+                                    • <strong className="text-slate-900 dark:text-slate-100">{t.title}</strong>{' '}
+                                    <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold">
+                                      ({t.status || 'In Progress'})
+                                    </span>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <p className="text-[10px] text-slate-400 italic">No tasks assigned for this date.</p>
+                            )}
+                          </td>
 
-                    {/* Calls Logged */}
-                    <div className="p-3 bg-white dark:bg-slate-800/80 print:bg-slate-50 rounded-xl border border-slate-200 dark:border-slate-700 space-y-1">
-                      <span className="font-bold text-blue-700 dark:text-blue-400 flex items-center gap-1">
-                        <PhoneCall className="w-3.5 h-3.5" /> Calls ({empCalls.length}):
-                      </span>
-                      {empCalls.length > 0 ? (
-                        <ul className="space-y-1 text-[11px] text-slate-700 dark:text-slate-300">
-                          {empCalls.map((c) => (
-                            <li key={c._id}>
-                              • {c.clientName} ({c.outcome}) {c.proofFiles?.length > 0 ? '📎 Proof' : ''}
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="text-[10px] text-slate-400 italic">No customer calls logged today.</p>
-                      )}
-                    </div>
+                          {/* Column 2: Calls */}
+                          <td className="p-3 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40">
+                            {empCalls.length > 0 ? (
+                              <ul className="space-y-1.5 text-[11px] text-slate-700 dark:text-slate-300">
+                                {empCalls.map((c) => (
+                                  <li key={c._id} className="leading-snug">
+                                    • <strong className="text-slate-900 dark:text-slate-100">{c.clientName}</strong>{' '}
+                                    <span className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold">
+                                      ({c.outcome})
+                                    </span>{' '}
+                                    {c.proofFiles?.length > 0 ? <span className="text-emerald-600 font-bold">📎 Proof</span> : ''}
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <p className="text-[10px] text-slate-400 italic">No customer calls logged for this date.</p>
+                            )}
+                          </td>
 
-                    {/* Updates Posted */}
-                    <div className="p-3 bg-white dark:bg-slate-800/80 print:bg-slate-50 rounded-xl border border-slate-200 dark:border-slate-700 space-y-1">
-                      <span className="font-bold text-purple-700 dark:text-purple-400 flex items-center gap-1">
-                        <Activity className="w-3.5 h-3.5" /> Milestone Updates ({empUpdates.length}):
-                      </span>
-                      {empUpdates.length > 0 ? (
-                        <ul className="space-y-1 text-[11px] text-slate-700 dark:text-slate-300">
-                          {empUpdates.map((u) => (
-                            <li key={u._id}>• {u.updateTitle}</li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="text-[10px] text-slate-400 italic">No project updates posted today.</p>
-                      )}
-                    </div>
+                          {/* Column 3: Updates */}
+                          <td className="p-3 bg-white dark:bg-slate-900/40">
+                            {empUpdates.length > 0 ? (
+                              <ul className="space-y-1.5 text-[11px] text-slate-700 dark:text-slate-300">
+                                {empUpdates.map((u) => (
+                                  <li key={u._id} className="leading-snug">
+                                    • <strong className="text-slate-900 dark:text-slate-100">{u.updateTitle}</strong>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <p className="text-[10px] text-slate-400 italic">No project updates posted for this date.</p>
+                            )}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               );
