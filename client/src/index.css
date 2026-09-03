@@ -21,3 +21,42 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #475569;
 }
+
+/* Professional Print / PDF Export Styling */
+@media print {
+  @page {
+    margin: 10mm 12mm 10mm 12mm;
+    size: A4 portrait;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Hide navigation, sidebars, mobile headers, hamburger buttons, and non-printable elements */
+  header, nav, sidebar, aside, .print\:hidden, button, input[type="date"], [class*="md:hidden"] {
+    display: none !important;
+  }
+
+  /* Reset main container layout for print */
+  body > div, main, div {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-shadow: none !important;
+  }
+
+  /* Avoid page breaks inside cards */
+  .print-avoid-break {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+}
